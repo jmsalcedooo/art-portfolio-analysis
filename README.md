@@ -2,8 +2,6 @@
 
 This study addresses subjectivity in Fine Arts assessment by proposing a dual-stage Convolutional Neural Network–Siamese Neural Network (CNN-SNN) framework for objective style attribution and originality evaluation. The framework evaluates stylistic features across two distinct sources: a primary dataset of 102 local student portfolios and a secondary global dataset of 50 master artists from WikiArt. Analysis is conducted through three specialized pipelines: Color, Brushstroke, and Texture. EfficientNet-B3 achieved up to 88.81% accuracy on the Global dataset and 92.75% on the Local dataset. An originality analysis revealed that 73.5% of students were classified as "Very Similar" and 26.5% as "Similar," with an originality range of 28 points (4.87%–33.01%). The framework provides quantitative similarity measures and percentile-based originality scores, supporting objective evaluation of artistic growth, stylistic influence, and academic integrity in Fine Arts education.
 
-[![Tech Stack](https://img.shields.io/badge/Python-HTML-CSS-blue?style=for-the-badge)]()
-
 ---
 
 ## 📸 System Previews

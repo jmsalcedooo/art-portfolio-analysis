@@ -4,7 +4,7 @@ This study addresses subjectivity in Fine Arts assessment by proposing a dual-st
 
 ---
 
-## 📸 System Previews
+## 📸 Prototype Previews
 
 <table align="center">
   <tr>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Art Attribution Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
+        .artist-card { transition: 0.3s; cursor: pointer; border: none; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .artist-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .card-img-top { height: 220px; object-fit: cover; }
+        .nav-pills .nav-link.active { background-color: #343a40; }
+        .nav-pills .nav-link { color: #343a40; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">🎨 Artwork Analysis Prototype</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row mb-4 justify-content-center">
+            <div class="col-md-8">
+                <input type="text" id="searchInput" class="form-control form-control-lg text-center" placeholder="Search for an artist...">
+            </div>
+        </div>
+
+        <ul class="nav nav-pills justify-content-center mb-4" id="artistTabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" id="local-tab" data-bs-toggle="pill" data-bs-target="#local" type="button">🎓 Local Students</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="global-tab" data-bs-toggle="pill" data-bs-target="#global" type="button">🌍 Global Masters</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="artistTabsContent">
+                                
+        <div class="tab-pane fade show active" id="local">
+            <div class="text-end mb-4">
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createModal">+ New Student Profile</button>
+            </div>
+            <div class="row g-4 artist-grid">
+                {% for artist in local_artists %}
+        <div class="col-md-3 col-sm-6 artist-item">
+            <div class="card artist-card h-100" style="cursor: pointer;" onclick="location.href='/artist/{{ artist.name }}'">
+                {% if artist.thumbnail %}
+                <img src="/get_image/{{ artist.name }}/{{ artist.thumbnail }}" class="card-img-top" style="height: 220px; object-fit: cover;">
+                {% else %}
+                <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center text-white" style="height: 220px;">No Image</div>
+                {% endif %}
+                <div class="card-body text-center">
+                    <h5 class="card-title fw-bold">{{ artist.name }}</h5>
+                    <div class="d-flex gap-2 justify-content-center mt-2" onclick="event.stopPropagation();">
+                        <button class="btn btn-sm btn-primary flex-fill" onclick="renamePortfolio('{{ artist.name }}')">Rename</button>
+                        <button class="btn btn-sm btn-danger flex-fill" onclick="confirmDelete('{{ artist.name }}')">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+                {% endfor %}
+            </div>
+        </div>
+
+            <div class="tab-pane fade" id="global">
+                <div class="row g-4 artist-grid">
+                    {% for artist in global_artists %}
+                    <div class="col-md-3 col-sm-6 artist-item">
+                        <a href="/artist/{{ artist.name }}" class="text-decoration-none text-dark">
+                            <div class="card artist-card h-100">
+                                {% if artist.thumbnail %}
+                                <img src="/get_image/{{ artist.name }}/{{ artist.thumbnail }}" class="card-img-top">
+                                {% else %}
+                                <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center text-white">No Image</div>
+                                {% endif %}
+                                <div class="card-body text-center">
+                                    <h5 class="card-title fw-bold">{{ artist.name }}</h5>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="modal fade" id="createModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="/add_artwork" method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label class="form-label">Student Name</label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Initial Portfolio</label>
+                            <input type="file" name="files[]" class="form-control" multiple required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Create Profile</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('searchInput').addEventListener('keyup', function(e) {
+            let term = e.target.value.toLowerCase();
+            document.querySelectorAll('.artist-item').forEach(item => {
+                let name = item.querySelector('.card-title').innerText.toLowerCase();
+                item.style.display = name.includes(term) ? 'block' : 'none';
+            });
+        });
+    </script>
+
+    <!-- ADD THIS SCRIPT AT THE BOTTOM BEFORE </body> -->
+    <script>
+
+    function renamePortfolio(oldName) {
+        let newName = prompt('Enter new portfolio name:', oldName);
+        if (!newName || newName === oldName) return;
+        
+        fetch('/rename_portfolio', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({old_name: oldName, new_name: newName})
+        }).then(res => {
+            if (res.ok) location.reload();
+            else res.json().then(data => alert(data.error || 'Error renaming portfolio'));
+        });
+    }
+
+    function confirmDelete(name) {
+        if (confirm(`⚠️ Delete ${name}'s entire portfolio? This cannot be undone!`)) {
+            fetch('/delete_portfolio', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name: name})
+            }).then(res => {
+                if (res.ok) location.reload();
+                else alert('Error deleting portfolio');
+            });
+        }
+    }
+    </script>
+</body>
+</html>
